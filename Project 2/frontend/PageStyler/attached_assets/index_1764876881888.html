@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Generator MVP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #4f46e5;
+            color: white;
+            padding: 20px 30px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .input-section {
+            padding: 30px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 200px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        #calendar {
+            padding: 30px;
+            min-height: 600px;
+        }
+
+        .example {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(5, 1fr);
+            gap: 0;
+            background: #e5e7eb;
+            border: 1px solid #e5e7eb;
+            margin-top: 20px;
+        }
+
+        .day-header {
+            font-weight: 600;
+            text-align: center;
+            padding: 16px 8px;
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .time-column {
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .time-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-align: right;
+            padding: 8px;
+            background: #f9fafb;
+            height: 60px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .day-column {
+            position: relative;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .time-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .hour-marker {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 60px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .event-block {
+            position: absolute;
+            left: 4px;
+            right: 4px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+            border-left: 3px solid;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .event-block:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+
+        .event-title {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .event-description {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .week-display {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Class Schedule Generator</h1>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="eventInput">Course JSON (Paste output from converter.py)</label>
+                <textarea id="eventInput" placeholder='Paste converter.py JSON output here...'>[
+  {
+    "course": "CS 124",
+    "name": "Introduction to Computer Science I",
+    "description": "Full course description text here...",
+    "type": "Lecture",
+    "term": "1",
+    "start": "09:00:00 am",
+    "end": "09:50:00 am",
+    "days": "MWF",
+    "location": "Siebel Center 1404",
+    "CRN": 12345,
+    "section": "AL1",
+    "credit": "3 hours.",
+    "instructors": "Doe, J"
+  }
+]</textarea>
+                <div class="example">
+                    <strong>Format:</strong> Paste the JSON array output from converter.py. Courses with start time as "ARRANGED" will be filtered out automatically.
+                </div>
+                <div id="error" class="error"></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="generateSchedule()">Generate Schedule</button>
+                <button class="btn-secondary" onclick="loadExample()">Load Example</button>
+            </div>
+        </div>
+
+        <div id="calendar"></div>
+    </div>
+
+    <script>
+        let currentEvents = [];
+        let currentCourses = [];
+        let currentTermHalf = 'first'; // 'first', 'second'
+
+        // Convert days string (M/T/W/R/F) to weekday array
+        function convertDaysToWeekdays(daysStr) {
+            const dayMap = {
+                'M': 'Monday',
+                'T': 'Tuesday',
+                'W': 'Wednesday',
+                'R': 'Thursday',
+                'F': 'Friday'
+            };
+
+            const weekdays = [];
+            for (let char of daysStr) {
+                if (dayMap[char]) {
+                    weekdays.push(dayMap[char]);
+                }
+            }
+            return weekdays;
+        }
+
+        // Convert time from "HH:MM:SS am/pm" to "HH:MM" (24-hour format)
+        function convertTime(timeStr) {
+            if (!timeStr || timeStr === 'ARRANGED') return null;
+
+            // Parse time like "09:00:00 am" or "02:30:00 pm"
+            const match = timeStr.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm)/i);
+            if (!match) return null;
+
+            let hours = parseInt(match[1]);
+            const minutes = match[2];
+            const period = match[3].toLowerCase();
+
+            if (period === 'pm' && hours !== 12) {
+                hours += 12;
+            } else if (period === 'am' && hours === 12) {
+                hours = 0;
+            }
+
+            return `${hours.toString().padStart(2, '0')}:${minutes}`;
+        }
+
+        // Convert course data from converter.py format to schedule format
+        function convertCoursesToEvents(courses) {
+            const events = [];
+
+            for (let course of courses) {
+                // Filter out online courses (ARRANGED)
+                if (course.start === 'ARRANGED') continue;
+
+                // Filter by term half
+                if (currentTermHalf === 'first' && course.term !== '1' && course.term !== 'A') continue;
+                if (currentTermHalf === 'second' && course.term !== '1' && course.term !== 'B') continue;
+
+                const startTime = convertTime(course.start);
+                const endTime = convertTime(course.end);
+
+                if (!startTime || !endTime) continue;
+
+                const weekdays = convertDaysToWeekdays(course.days || '');
+                if (weekdays.length === 0) continue;
+
+                events.push({
+                    title: course.course,
+                    description: `${course.name} - ${course.type}`,
+                    weekdays: weekdays,
+                    time: `${startTime}-${endTime}`,
+                    courseData: course // Store original data for details display
+                });
+            }
+
+            return events;
+        }
+
+        // Get the current week's Monday
+        function getWeekStart() {
+            const today = new Date();
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(today.setDate(diff));
+            monday.setHours(0, 0, 0, 0);
+            return monday;
+        }
+
+        // Format date for display
+        function formatDate(date) {
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        // Map weekday names to numbers (0 = Sunday, 1 = Monday, etc.)
+        const weekdayMap = {
+            'sunday': 0,
+            'monday': 1,
+            'tuesday': 2,
+            'wednesday': 3,
+            'thursday': 4,
+            'friday': 5,
+            'saturday': 6
+        };
+
+        const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const colors = [
+            { bg: '#dbeafe', border: '#3b82f6' },
+            { bg: '#e9d5ff', border: '#8b5cf6' },
+            { bg: '#fce7f3', border: '#ec4899' },
+            { bg: '#fed7aa', border: '#f59e0b' },
+            { bg: '#d1fae5', border: '#10b981' },
+            { bg: '#cffafe', border: '#06b6d4' },
+            { bg: '#e0e7ff', border: '#6366f1' }
+        ];
+
+        // Parse events
+        function parseEvents(inputEvents) {
+            const events = [];
+            const weekStart = getWeekStart();
+
+            inputEvents.forEach((event, index) => {
+                const [startTime, endTime] = event.time.split('-');
+                const [startHour, startMin] = startTime.split(':').map(Number);
+                const [endHour, endMin] = endTime.split(':').map(Number);
+
+                event.weekdays.forEach(weekday => {
+                    const weekdayNum = weekdayMap[weekday.toLowerCase()];
+                    if (weekdayNum === undefined) {
+                        throw new Error(`Invalid weekday: ${weekday}`);
+                    }
+
+                    events.push({
+                        id: `${index}-${weekday}`,
+                        title: event.title,
+                        description: event.description,
+                        weekday: weekdayNum,
+                        startHour,
+                        startMin,
+                        endHour,
+                        endMin,
+                        color: colors[index % colors.length],
+                        courseData: event.courseData // Pass through course data
+                    });
+                });
+            });
+
+            return events;
+        }
+
+        // Toggle term half
+        function toggleTermHalf(half) {
+            currentTermHalf = half;
+
+            // Regenerate schedule with new filter (buttons will be updated automatically during render)
+            generateSchedule();
+        }
+
+        // Render calendar
+        function renderCalendar(events) {
+            const calendarElement = document.getElementById('calendar');
+            const weekStart = getWeekStart();
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+
+            const startHour = 7;
+            const endHour = 22;
+            const totalHours = endHour - startHour + 1;
+            const pixelsPerHour = 60;
+            const totalHeight = totalHours * pixelsPerHour;
+
+            // Determine button classes based on current term half
+            const btnFirstClass = currentTermHalf === 'first' ? 'btn-primary' : 'btn-secondary';
+            const btnSecondClass = currentTermHalf === 'second' ? 'btn-primary' : 'btn-secondary';
+
+            let html = `
+                <div class="calendar-header">
+                    <div class="button-group">
+                        <button id="btnFirst" class="${btnFirstClass}" onclick="toggleTermHalf('first')">First Half</button>
+                        <button id="btnSecond" class="${btnSecondClass}" onclick="toggleTermHalf('second')">Second Half</button>
+                    </div>
+                </div>
+                <div class="week-grid">
+            `;
+
+            // Header row - empty corner + day headers
+            html += `<div class="day-header"></div>`;
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(weekStart);
+                date.setDate(date.getDate() + i);
+                const dayName = weekdayNames[date.getDay()];
+                html += `<div class="day-header">${dayName}</div>`;
+            }
+
+            // Time column
+            html += `<div class="time-column" style="height: ${totalHeight}px;">`;
+            for (let hour = startHour; hour <= endHour; hour++) {
+                html += `<div class="time-label">${hour.toString().padStart(2, '0')}:00</div>`;
+            }
+            html += `</div>`;
+
+            // Day columns (Monday to Friday)
+            for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
+                const date = new Date(weekStart);
+                date.setDate(date.getDate() + dayIndex);
+                const currentWeekday = date.getDay();
+
+                html += `<div class="day-column" style="height: ${totalHeight}px;">`;
+
+                // Add hour markers for visual reference
+                html += `<div class="time-grid">`;
+                for (let hour = startHour; hour <= endHour; hour++) {
+                    const topPos = (hour - startHour) * pixelsPerHour;
+                    html += `<div class="hour-marker" style="top: ${topPos}px;"></div>`;
+                }
+
+                // Find and render all events for this day
+                const dayEvents = events.filter(e => e.weekday === currentWeekday);
+
+                dayEvents.forEach(event => {
+                    // Calculate exact position and height
+                    const startMinutes = (event.startHour - startHour) * 60 + event.startMin;
+                    const endMinutes = (event.endHour - startHour) * 60 + event.endMin;
+                    const duration = endMinutes - startMinutes;
+
+                    const topPos = startMinutes;  // 1 pixel per minute
+                    const height = duration;
+
+                    const timeStr = `${event.startHour.toString().padStart(2, '0')}:${event.startMin.toString().padStart(2, '0')} - ${event.endHour.toString().padStart(2, '0')}:${event.endMin.toString().padStart(2, '0')}`;
+
+                    html += `
+                        <div class="event-block"
+                             style="top: ${topPos}px; height: ${height}px; background-color: ${event.color.bg}; border-color: ${event.color.border}"
+                             onclick='showEventDetails(${JSON.stringify(event.courseData || {})})'>
+                            <div class="event-title">${event.title}</div>
+                            <div class="event-description">${event.description}</div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`; // close time-grid
+                html += `</div>`; // close day-column
+            }
+
+            html += `</div>`; // close week-grid
+
+            // Add course details section
+            html += `
+                <div style="margin-top: 30px; padding: 20px; background: #f9fafb; border-radius: 6px;">
+                    <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600; color: #374151;">Course Details</h3>
+                    <div id="courseDetails" style="font-family: 'Courier New', monospace; font-size: 13px; white-space: pre-wrap; color: #1f2937; line-height: 1.6;">
+                        Click on a course in the schedule to view its details here.
+                    </div>
+                </div>
+            `;
+
+            calendarElement.innerHTML = html;
+        }
+
+        // Show event details
+        function showEventDetails(courseData) {
+            const detailsDiv = document.getElementById('courseDetails');
+            if (!courseData || Object.keys(courseData).length === 0) {
+                detailsDiv.textContent = 'No course data available.';
+                return;
+            }
+
+            // Convert term code to readable text
+            function convertTermDisplay(termCode) {
+                if (termCode === '1') return 'Whole Term';
+                if (termCode === 'A') return 'First Half';
+                if (termCode === 'B') return 'Second Half';
+                return termCode;
+            }
+
+            // Format time from start and end
+            function formatTimeRange(start, end) {
+                if (!start || !end || start === 'ARRANGED') return 'ARRANGED';
+
+                // Convert "09:00:00 am" to "09:00"
+                const startMatch = start.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm)/i);
+                const endMatch = end.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm)/i);
+
+                if (!startMatch || !endMatch) return `${start}-${end}`;
+
+                let startHour = parseInt(startMatch[1]);
+                const startMin = startMatch[2];
+                const startPeriod = startMatch[3].toLowerCase();
+
+                let endHour = parseInt(endMatch[1]);
+                const endMin = endMatch[2];
+                const endPeriod = endMatch[3].toLowerCase();
+
+                // Convert to 24-hour format
+                if (startPeriod === 'pm' && startHour !== 12) startHour += 12;
+                if (startPeriod === 'am' && startHour === 12) startHour = 0;
+                if (endPeriod === 'pm' && endHour !== 12) endHour += 12;
+                if (endPeriod === 'am' && endHour === 12) endHour = 0;
+
+                return `${startHour.toString().padStart(2, '0')}:${startMin}-${endHour.toString().padStart(2, '0')}:${endMin}`;
+            }
+
+            // Format days from codes to full names
+            function formatDays(daysStr) {
+                if (!daysStr) return 'N/A';
+                const dayMap = {
+                    'M': 'Monday',
+                    'T': 'Tuesday',
+                    'W': 'Wednesday',
+                    'R': 'Thursday',
+                    'F': 'Friday'
+                };
+
+                const days = [];
+                for (let char of daysStr) {
+                    if (dayMap[char]) {
+                        days.push(dayMap[char]);
+                    }
+                }
+                return days.join(' ');
+            }
+
+            // Format course data without quotes for readability
+            let detailsText = '';
+            let timeAdded = false;
+            let daysAdded = false;
+
+            for (let key in courseData) {
+                // Skip building, room, start, end, and days (we'll format these specially)
+                if (key === 'building' || key === 'room' || key === 'start' || key === 'end' || key === 'days') {
+                    // Add formatted time after we've seen start/end
+                    if (key === 'end' && !timeAdded) {
+                        detailsText += `time: ${formatTimeRange(courseData['start'], courseData['end'])}\n`;
+                        timeAdded = true;
+                    }
+                    // Add formatted days
+                    if (key === 'days' && !daysAdded) {
+                        detailsText += `days: ${formatDays(courseData['days'])}\n`;
+                        daysAdded = true;
+                    }
+                    continue;
+                }
+
+                let value = courseData[key];
+
+                // Remove quotes and format value
+                if (value === null || value === undefined || value === '') {
+                    value = 'N/A';
+                } else {
+                    value = String(value);
+                }
+
+                // Convert term value
+                if (key === 'term') {
+                    value = convertTermDisplay(value);
+                }
+
+                detailsText += `${key}: ${value}\n`;
+            }
+
+            detailsDiv.textContent = detailsText;
+        }
+
+        // Generate schedule from input
+        function generateSchedule() {
+            const input = document.getElementById('eventInput').value;
+            const errorDiv = document.getElementById('error');
+
+            try {
+                errorDiv.style.display = 'none';
+                let inputData = JSON.parse(input);
+
+                // Check if input is from converter.py (has 'course' field) or old format (has 'title' field)
+                if (!Array.isArray(inputData)) {
+                    throw new Error('Input must be an array of courses');
+                }
+
+                // Store original courses for term filtering
+                currentCourses = inputData;
+
+                let inputEvents;
+                if (inputData.length > 0 && inputData[0].course) {
+                    // New format from converter.py - convert it
+                    inputEvents = convertCoursesToEvents(inputData);
+                } else {
+                    // Old format - use as is
+                    inputEvents = inputData;
+
+                    // Validate old format events
+                    inputEvents.forEach((event, idx) => {
+                        if (!event.title) throw new Error(`Event ${idx + 1}: Missing title`);
+                        if (!event.description) throw new Error(`Event ${idx + 1}: Missing description`);
+                        if (!event.weekdays || !Array.isArray(event.weekdays)) {
+                            throw new Error(`Event ${idx + 1}: Missing or invalid weekdays array`);
+                        }
+                        if (!event.time || !event.time.match(/^\d{2}:\d{2}-\d{2}:\d{2}$/)) {
+                            throw new Error(`Event ${idx + 1}: Invalid time format (use HH:MM-HH:MM)`);
+                        }
+                    });
+                }
+
+                currentEvents = parseEvents(inputEvents);
+                renderCalendar(currentEvents);
+            } catch (error) {
+                errorDiv.textContent = `Error: ${error.message}`;
+                errorDiv.style.display = 'block';
+                console.error(error);
+            }
+        }
+
+        // Load example data
+        function loadExample() {
+            const example = [
+                {
+                    "course": "CS 124",
+                    "name": "Introduction to Computer Science I",
+                    "description": "Basic concepts in computing and fundamental techniques for solving computational problems. Intended as a first course for computer science majors and others with a deep interest in computing.",
+                    "credit": "3 hours.",
+                    "degree": "Quantitative Reasoning I course.",
+                    "CRN": 71578,
+                    "section": "AL1",
+                    "term": "1",
+                    "type": "Lecture",
+                    "start": "09:00:00 am",
+                    "end": "09:50:00 am",
+                    "days": "MWF",
+                    "location": "Siebel Center 1404",
+                    "instructors": "Challen, G"
+                },
+                {
+                    "course": "MATH 221",
+                    "name": "Calculus I",
+                    "description": "Differentiation and integration of elementary functions, with applications. Intended for students in engineering and the sciences.",
+                    "credit": "5 hours.",
+                    "degree": "Quantitative Reasoning I course.",
+                    "CRN": 32145,
+                    "section": "AB3",
+                    "term": "1",
+                    "type": "Lecture",
+                    "start": "10:00:00 am",
+                    "end": "10:50:00 am",
+                    "days": "MTWRF",
+                    "location": "Altgeld Hall 314",
+                    "instructors": "Smith, J"
+                },
+                {
+                    "course": "PHYS 211",
+                    "name": "University Physics: Mechanics",
+                    "description": "First semester of a three-semester sequence in calculus-based physics. Mechanics of particles, including forces, energy, momentum, rotation, and gravitation.",
+                    "credit": "4 hours.",
+                    "degree": "Natural Sciences & Technology course.",
+                    "CRN": 45678,
+                    "section": "A",
+                    "term": "A",
+                    "type": "Lecture",
+                    "start": "01:00:00 pm",
+                    "end": "01:50:00 pm",
+                    "days": "MWF",
+                    "location": "Loomis Lab 141",
+                    "instructors": "Brown, A"
+                },
+                {
+                    "course": "CHEM 102",
+                    "name": "General Chemistry I",
+                    "description": "Introduction to chemistry including stoichiometry, chemical reactions, atomic and molecular structure, states of matter, thermochemistry, and chemical bonding.",
+                    "credit": "3 hours.",
+                    "degree": "Natural Sciences & Technology course.",
+                    "CRN": 78901,
+                    "section": "B2",
+                    "term": "B",
+                    "type": "Lecture",
+                    "start": "02:00:00 pm",
+                    "end": "02:50:00 pm",
+                    "days": "TR",
+                    "location": "Noyes Lab 100",
+                    "instructors": "Johnson, K"
+                },
+                {
+                    "course": "ENG 101",
+                    "name": "Composition I",
+                    "description": "Writing course focusing on argument and research-based writing. Students will develop skills in critical reading, analysis, and composition.",
+                    "credit": "3 hours.",
+                    "degree": "Composition I course.",
+                    "CRN": 11111,
+                    "section": "ONL",
+                    "term": "1",
+                    "type": "Online",
+                    "start": "ARRANGED",
+                    "end": "",
+                    "days": "",
+                    "location": "Online",
+                    "instructors": "Williams, M"
+                }
+            ];
+
+            document.getElementById('eventInput').value = JSON.stringify(example, null, 2);
+            generateSchedule();
+        }
+
+        // Auto-load example on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadExample();
+        });
+    </script>
+</body>
+</html>
