@@ -1,104 +1,83 @@
 # Schedule Generator
 
-A course schedule planner for **UIUC** (University of Illinois Urbana-Champaign). You pick the
-courses you want to take, mark the times you must keep free, and dial in how much you care about
-things like professor ratings and class difficulty. The app then searches every valid combination
-of sections and returns the **top 10 conflict-free schedules**, ranked by your preferences.
+A course scheduler for UIUC. You tell it which classes you want, when you need to be free, and what
+you actually care about (good professors? easy A? not sprinting across campus between classes?), and
+it hands you the 10 best conflict-free schedules.
 
-> Built on a static snapshot of **Spring 2025** course data enriched with historical GPA
-> distributions, RateMyProfessor scores, and ICES teaching-quality ratings.
+It runs on a snapshot of Spring 2025 course data, which also includes each section's grade history,
+RateMyProfessor score, and ICES teaching ratings, so the ranking is based on real numbers instead of
+guesswork.
 
----
+## How you use it
 
-## What it does
+1. Search for classes by department (`CS`, `MATH`, `ECE`, whatever).
+2. Paint your week on a grid to mark times you'd rather keep free, or absolutely must keep free.
+3. Drag some sliders to say how much professor quality / difficulty / walking distance matter to you.
+4. Hit generate. It figures out every combination of sections that actually fits, scores them, and
+   shows you the top 10.
 
-1. **Search courses** by department (e.g. `CS`, `MATH`, `ECE`).
-2. **Block out time** on a weekly grid — mark slots as free, "prefer to avoid" (soft), or
-   "must avoid" (hard).
-3. **Set preferences** with sliders — how much professor quality, class difficulty, and grade
-   history matter to you.
-4. **Generate** — the backend runs a constraint solver over all section combinations, scores each
-   valid schedule, and returns the 10 best.
+## How it's put together
 
----
+There are two moving parts:
 
-## Architecture
-
-```
-┌─────────────────────────┐        HTTP (JSON)        ┌──────────────────────────────┐
-│  Frontend (React/Vite)  │  ───────────────────────► │  Backend (Flask)             │
-│  frontend/PageStyler    │   127.0.0.1:5001          │  data_processing/filter      │
-│  - course search UI     │                           │  - /search/<dept>            │
-│  - weekly time grid     │  ◄─────────────────────── │  - /preferences (POST)       │
-│  - preference sliders   │      top-10 schedules     │  - constraint solver + score │
-└─────────────────────────┘                           └───────────────┬──────────────┘
-                                                                       │ reads
-                                                       ┌───────────────▼──────────────┐
-                                                       │  datasets/11-7-2025-sp.csv    │
-                                                       │  UIUC Spring 2025 sections    │
-                                                       │  + GPA / RMP / ICES data      │
-                                                       └───────────────────────────────┘
-```
-
-The frontend calls the Flask backend **directly**. (There is also an Express server bundled with
-the frontend — it is Replit scaffolding used to serve the static build in production; it is not the
-scheduling API.)
-
-### Repository layout
+- **Backend** (`data_processing/filter/`) — a Flask app that does the actual scheduling. This is
+  where the real logic lives.
+- **Frontend** (`frontend/PageStyler/`) — a React + Vite app for the UI. It talks to the Flask
+  backend directly over HTTP.
 
 ```
-Schedule-Generator/
-├── data_processing/filter/        # Flask backend — the scheduling engine
-│   ├── app.py                     #   HTTP endpoints (/ping, /search, /preferences)
-│   ├── scheduler.py               #   orchestrates filtering + scoring, returns top 10
-│   ├── hard_filtering_code.py     #   DFS constraint solver (conflict-free section combos)
-│   ├── soft_filtering_code.py     #   preference scoring (professor / GPA / soft breaks)
-│   ├── location_code.py           #   walking-distance scoring between back-to-back classes
-│   ├── buildings_coords.json      #   UIUC building -> lat/lon (real OpenStreetMap data)
-│   └── requirements.txt
-├── datasets/
-│   └── 11-7-2025-sp.csv           # UIUC Spring 2025 course data (~7 MB)
-├── frontend/PageStyler/           # React 19 + Vite + Tailwind + shadcn/ui
-│   ├── client/                    #   the actual UI (pages, components, api client)
-│   ├── server/                    #   Express static-serve wrapper (Replit scaffolding)
-│   └── package.json
-└── BACKEND_API_DOCUMENTATION.md   # full request/response reference
+React/Vite UI  ──HTTP──►  Flask backend  ──reads──►  Spring 2025 course CSV
+ (port 5000)              (port 5001)                (grades + RMP + ICES)
 ```
 
----
+> Heads up: there's also an Express server inside the frontend folder. That's leftover Replit
+> scaffolding for serving the built site — it's not the scheduling API. The Flask app is the backend.
 
-## How the scheduling engine works
+### Where things are
 
-**Hard filtering (`hard_filtering_code.py`)** — the core solver.
-The week is modeled as a `5 × 90` grid: 5 weekdays (M, T, W, R, F) × 90 ten-minute slots
-(7:00 AM → 10:00 PM). Each course section is projected onto this grid, and a depth-first search
-walks every combination of sections. A combination is kept only if no two sections overlap and it
-respects your hard time-blocks. Linked sections (lecture + lab/discussion) are handled together, and
-there is a 30,000-schedule cap to keep the search bounded.
+```
+data_processing/filter/
+  app.py                  # the HTTP endpoints
+  scheduler.py            # ties it all together, returns the top 10
+  hard_filtering_code.py  # finds every schedule with no time conflicts
+  soft_filtering_code.py  # scores professors, grades, break times
+  location_code.py        # scores walking distance between classes
+  buildings_coords.json   # UIUC building -> lat/lon (from OpenStreetMap)
 
-**Soft scoring (`soft_filtering_code.py` + `location_code.py`)** — ranks the survivors.
-Each valid schedule gets a 0–100 score from four weighted components:
-- **Professor quality** — RateMyProfessor score + ICES "Excellent"/"Outstanding" ratings.
-- **Class difficulty** — historical average GPA (per professor and per class) and the % of students
-  who earned at or above your target grade.
-- **Soft breaks** — how well it avoids the times you'd *prefer* to keep free.
-- **Location** — walking distance between back-to-back classes. For each consecutive pair on the
-  same day it computes the real great-circle distance between the two buildings (Haversine over
-  OpenStreetMap coordinates), converts it to a walking time (~84 m/min), and penalizes schedules
-  that would make you late or force a longer walk than you're willing to do. Buildings without
-  coordinate data are treated as neutral, never guessed.
+datasets/
+  11-7-2025-sp.csv        # the Spring 2025 course data (~7 MB)
 
-Your slider values decide how much each component pulls on the final score. The top 10 are returned.
+frontend/PageStyler/      # React 19 + Vite + Tailwind + shadcn/ui
+BACKEND_API_DOCUMENTATION.md
+```
 
----
+## What the scheduler is actually doing
 
-## Running locally
+**Step 1 — find schedules that fit.** The week is a 5×90 grid: five weekdays by ninety 10-minute
+slots (7 AM to 10 PM). Each section gets stamped onto that grid, and a depth-first search tries every
+combination of sections, throwing out any that overlap or that hit a time you blocked off. Lectures
+and their discussions/labs get kept together. It stops at 30,000 candidates so it doesn't run
+forever.
 
-### Prerequisites
-- Python 3.10+
-- Node.js 20+
+**Step 2 — score what's left.** Every valid schedule gets a 0–100 score built from four things, each
+weighted by how much you said you care:
 
-### 1. Start the backend (Flask, port 5001)
+- **Professors** — RateMyProfessor score plus ICES "Excellent"/"Outstanding" ratings.
+- **Difficulty** — historical average GPA (both per-professor and per-class), and the share of
+  students who got your target grade or better.
+- **Break times** — how well it dodges the times you'd rather not have class.
+- **Walking distance** — for back-to-back classes, it measures the real distance between the two
+  buildings, turns that into a walking time (about 84 m/min), and dings schedules that would make you
+  late or force a longer walk than you signed up for. Buildings it doesn't have coordinates for just
+  get skipped rather than guessed.
+
+Highest scores win, and you get the top 10.
+
+## Running it locally
+
+You'll need Python 3.10+ and Node 20+.
+
+**Backend:**
 
 ```bash
 cd data_processing/filter
@@ -106,9 +85,9 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Sanity check: open http://127.0.0.1:5001/ping — you should see a "server is working" message.
+Quick check that it's alive: hit http://127.0.0.1:5001/ping in your browser.
 
-### 2. Start the frontend (Vite, port 5000)
+**Frontend** (in another terminal):
 
 ```bash
 cd frontend/PageStyler
@@ -116,48 +95,38 @@ npm install
 npm run dev:client
 ```
 
-Then open http://localhost:5000. The frontend expects the backend at `http://127.0.0.1:5001`
-(configured in `frontend/PageStyler/client/src/lib/api.ts`).
+Then open http://localhost:5000. It looks for the backend at `127.0.0.1:5001` — if you ever move the
+backend, that's set in `client/src/lib/api.ts`.
 
-> On Windows/PowerShell, use `npm run dev:client` (pure Vite). The `npm run dev` script uses
-> Unix-style env vars and is intended for the Replit/Linux environment.
+> On Windows, use `npm run dev:client`. The `npm run dev` script uses Unix-style env vars and only
+> works on Linux/Replit.
 
----
+## API
 
-## API reference
+Full request/response details are in [`BACKEND_API_DOCUMENTATION.md`](./BACKEND_API_DOCUMENTATION.md).
+The short version:
 
-See [`BACKEND_API_DOCUMENTATION.md`](./BACKEND_API_DOCUMENTATION.md) for full request/response
-schemas. Quick summary:
+| Method | Endpoint         | What it does                          |
+| ------ | ---------------- | ------------------------------------- |
+| `GET`  | `/ping`          | Is the server up?                     |
+| `GET`  | `/search/<dept>` | List every course in a department     |
+| `POST` | `/preferences`   | Generate the top 10 schedules         |
 
-| Method | Endpoint              | Purpose                                          |
-| ------ | --------------------- | ------------------------------------------------ |
-| `GET`  | `/ping`               | Health check                                     |
-| `GET`  | `/search/<dept>`      | List all courses in a department                 |
-| `POST` | `/preferences`        | Generate the top-10 ranked schedules             |
+## Some things to know
 
----
+- The course data is a one-time snapshot of Spring 2025. There's no live scraping and you can't pick
+  a different term.
+- Building coordinates cover 96 of the 109 buildings in the data. The missing ones are mostly odd
+  little annexes or off-campus spots (hospitals, Chicago sites), and they just don't factor into the
+  walking-distance score.
+- If you pick a bunch of classes that each have tons of sections, the search can blow past its 30,000
+  cap and come back empty. Pick fewer at a time if that happens.
 
-## Known limitations
+## Built with
 
-- **Building coordinate coverage is ~88%.** 96 of the 109 buildings in the dataset have real
-  OpenStreetMap coordinates; the rest are rare annexes or off-campus / remote sites, which are
-  scored as neutral (never guessed). Walk-distance transitions involving those buildings are
-  simply skipped.
-- **Data is a static snapshot** (Spring 2025, `11-7-2025-sp.csv`). There is no live scraping or
-  term selection.
-- **Large search spaces are capped.** The hard filter aborts past 30,000 candidate schedules to
-  bound computation, so selecting many high-section courses at once can return no results.
-- The bundled Express server is Replit scaffolding, not the real API — the Flask app is the backend.
-
-Contributions welcome.
-
----
-
-## Tech stack
-
-- **Backend:** Python, Flask, pandas, NumPy
-- **Frontend:** React 19, Vite, TypeScript, Tailwind CSS, shadcn/ui, TanStack Query, Wouter
-- **Data:** UIUC course catalog + GPA history + RateMyProfessor + ICES ratings (Spring 2025)
+Python, Flask, pandas, NumPy on the backend. React 19, Vite, TypeScript, Tailwind, and shadcn/ui on
+the frontend. Course data is UIUC's Spring 2025 catalog plus grade history, RateMyProfessor, and ICES
+ratings.
 
 ## License
 
