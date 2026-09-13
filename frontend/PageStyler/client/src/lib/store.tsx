@@ -14,10 +14,9 @@ interface SchedulePreferences {
   softbreakImportance: number;
 
   // Additional logistics preferences
+  locationImportance: number;
   walkingDistance: number;
   latenessTolerance: number;
-  preferredArea: string;
-  maxBlockDistance: number;
 }
 
 interface AppState {
@@ -61,10 +60,9 @@ const defaultPreferences: SchedulePreferences = {
   acceptableGpaWeight: 3,
   minAcceptableGpa: 'B+',
   softbreakImportance: 3,
+  locationImportance: 3,
   walkingDistance: 10,
   latenessTolerance: 5,
-  preferredArea: 'North Campus',
-  maxBlockDistance: 3,
 };
 
 // Initialize empty time breaks (5 days x 90 slots)

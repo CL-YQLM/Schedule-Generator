@@ -37,10 +37,9 @@ const sliderToStoreMap: Record<string, string> = {
   'class_avg_gpa': 'classGpaWeight',
   'min_grade': 'acceptableGpaWeight',
   'grade_dropdown': 'minAcceptableGpa',
+  'location_importance': 'locationImportance',
   'passing_period_main': 'walkingDistance',
   'late_tolerance': 'latenessTolerance',
-  'preferred_area': 'preferredArea',
-  'num_blocks': 'maxBlockDistance',
 };
 
 const StepSlider: React.FC<StepSliderProps> = ({ categoriesLeft, categoriesRight }) => {

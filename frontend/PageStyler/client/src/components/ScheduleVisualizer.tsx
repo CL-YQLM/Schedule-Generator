@@ -23,8 +23,6 @@ interface Course {
     start: string;
     end: string;
     days: string;
-    building: string;
-    room: string;
     location: string;
     instructors: string;
   };
@@ -205,16 +203,13 @@ export default function ScheduleVisualizer({ id, matchPercentage, creditHours, c
                     {WEEKDAYS.map((day) => (
                       <div key={day} className="relative border-l border-border/30 first:border-l-0" style={{ minHeight: '900px' }}>
                         {courses.map((course, courseIndex) => {
-                          // Debug: Check if course has valid days
                           if (!course.weekdays || course.weekdays.length === 0) {
-                            console.warn(`Course ${course.title} has no weekdays:`, course);
                             return null;
                           }
 
                           if (course.weekdays.includes(day)) {
                             const [startTime, endTime] = course.time.split("-");
                             if (!startTime || !endTime) {
-                              console.warn(`Course ${course.title} has invalid time:`, course.time);
                               return null;
                             }
 

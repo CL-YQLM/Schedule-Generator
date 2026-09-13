@@ -7,7 +7,6 @@ import { useAppStore } from "@/lib/store";
 // Helper function to convert days string to array
 function parseDaysToArray(days: string): string[] {
   if (!days || days.trim() === '') {
-    console.warn('Empty days string received');
     return [];
   }
 
@@ -19,13 +18,7 @@ function parseDaysToArray(days: string): string[] {
     'F': 'Friday'
   };
 
-  const result = days.split('').map(d => dayMap[d] || d).filter(d => d !== ' ');
-
-  if (result.some(d => !['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(d))) {
-    console.warn(`Invalid days parsed from "${days}":`, result);
-  }
-
-  return result;
+  return days.split('').map(d => dayMap[d] || d).filter(d => d !== ' ');
 }
 
 // Helper function to format time
@@ -75,36 +68,9 @@ export default function Results() {
         // Use the raw score from backend
         const matchPercentage = Math.round(schedule.score);
 
-        // Debug first schedule
-        if (index === 0) {
-          console.log('DEBUG: First schedule from backend:', schedule);
-          console.log('DEBUG: Calculated score:', matchPercentage);
-          console.log('DEBUG: Calculated credits:', creditHours);
-          console.log('DEBUG: Number of courses:', schedule.schedule.length);
-          console.log('DEBUG: All courses:', schedule.schedule.map(s => `${s.course} ${s.section} (CRN: ${s.CRN})`));
-          if (schedule.schedule.length > 0) {
-            console.log('DEBUG: First course time:', schedule.schedule[0].start, 'to', schedule.schedule[0].end);
-            console.log('DEBUG: Formatted time:', `${formatTime(schedule.schedule[0].start)}-${formatTime(schedule.schedule[0].end)}`);
-          }
-        }
-
-        const transformedCourses = schedule.schedule.map((section, sectionIdx) => {
+        const transformedCourses = schedule.schedule.map((section) => {
           const weekdays = parseDaysToArray(section.days);
           const time = `${formatTime(section.start)}-${formatTime(section.end)}`;
-
-          if (index === 0) {
-            console.log(`DEBUG: Section ${sectionIdx} - ${section.course} ${section.section}:`, {
-              rawDays: section.days,
-              daysType: typeof section.days,
-              daysValue: JSON.stringify(section.days),
-              parsedWeekdays: weekdays,
-              rawStart: section.start,
-              rawEnd: section.end,
-              formattedTime: time,
-              hasValidDays: weekdays && weekdays.length > 0,
-              hasValidTime: time && time.includes('-')
-            });
-          }
 
           return {
             title: `${section.course}: ${section.name}`,
@@ -114,31 +80,6 @@ export default function Results() {
             courseData: section
           };
         });
-
-        // Summary log for first schedule
-        if (index === 0) {
-          const lectureCount = transformedCourses.filter(c => c.courseData?.type?.toLowerCase().includes('lecture')).length;
-          const discussionCount = transformedCourses.filter(c => c.courseData?.type?.toLowerCase().includes('discussion')).length;
-          const labCount = transformedCourses.filter(c => c.courseData?.type?.toLowerCase().includes('lab')).length;
-          const emptyDaysCount = transformedCourses.filter(c => !c.weekdays || c.weekdays.length === 0).length;
-
-          console.log('DEBUG SUMMARY:', {
-            totalSections: transformedCourses.length,
-            lectures: lectureCount,
-            discussions: discussionCount,
-            labs: labCount,
-            sectionsWithEmptyDays: emptyDaysCount
-          });
-
-          if (emptyDaysCount > 0) {
-            console.warn(`WARNING: ${emptyDaysCount} section(s) have no weekdays and won't appear on calendar!`);
-            transformedCourses.forEach((c, i) => {
-              if (!c.weekdays || c.weekdays.length === 0) {
-                console.warn(`  - ${c.title} (${c.courseData?.type} ${c.courseData?.section})`);
-              }
-            });
-          }
-        }
 
         return {
           id: String.fromCharCode(65 + index), // A, B, C, etc.

@@ -5,7 +5,7 @@ This document describes the Flask backend API for the Course Scheduling applicat
 
 ## Base URL
 ```
-http://localhost:5000
+http://localhost:5001
 ```
 
 ## CORS Configuration
@@ -42,7 +42,7 @@ The backend allows cross-origin requests from any origin with the following head
 
 **Example Request:**
 ```bash
-curl http://localhost:5000/search/CS
+curl http://localhost:5001/search/CS
 ```
 
 **Response Format:**
@@ -82,7 +82,12 @@ curl http://localhost:5000/search/CS
   "course_list": ["CS 124", "MATH 221", "ECE 120"],
   "CRN_list": [71578, 34123],
   "hard_breaks": [[0, 0, ...], [0, 2, ...], ...],
-  "soft_preferences": [3, 4, 3, 2, 3, 4, 3, "B+", 4]
+  "soft_preferences": [3, 4, 3, 2, 3, 4, 3, "B+", 4],
+  "location_preferences": {
+    "importance": 3,
+    "walking_distance": 15,
+    "lateness_tolerance": 10
+  }
 }
 ```
 
@@ -126,15 +131,22 @@ curl http://localhost:5000/search/CS
 - Index 7: `min_acceptable_gpa` (string) - Minimum acceptable grade ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F")
 - Index 8: `softbreak_importance` (int 1-5) - How much soft break preferences matter
 
+#### `location_preferences` (object, optional)
+Rewards schedules that keep back-to-back classes within a comfortable walking distance. Omit it to fall back to sensible defaults (`importance` 3, `walking_distance` 15, `lateness_tolerance` 10).
+- `importance` (int 1-5) - How much walking distance between classes matters
+- `walking_distance` (int, minutes) - Longest walk you're willing to make between two classes
+- `lateness_tolerance` (int, minutes) - How many minutes late you can tolerate arriving
+
 **Example Request:**
 ```bash
-curl -X POST http://localhost:5000/preferences \
+curl -X POST http://localhost:5001/preferences \
   -H "Content-Type: application/json" \
   -d '{
     "course_list": ["CS 124", "MATH 221"],
     "CRN_list": [],
     "hard_breaks": [[0,...], [0,...], [0,...], [0,...], [0,...]],
-    "soft_preferences": [3, 4, 3, 2, 3, 4, 3, "B+", 4]
+    "soft_preferences": [3, 4, 3, 2, 3, 4, 3, "B+", 4],
+    "location_preferences": {"importance": 3, "walking_distance": 15, "lateness_tolerance": 10}
   }'
 ```
 
@@ -255,28 +267,35 @@ Courses are specified as strings in the format: `"DEPARTMENT NUMBER"`
 - Searches the course dataset for all courses in a given department
 - Returns unique courses (removes duplicate sections)
 
-#### `generate_schedule(course_list, CRN_list, time_breaks, soft_preferences)`
+#### `generate_schedule(course_list, CRN_list, time_breaks, soft_preferences, location_preferences=None)`
 - Located in: `scheduler.py`
 - Main scheduling algorithm
 - Steps:
   1. Converts time_breaks array (0,1,2) to hard_breaks (0,5) and soft_breaks (0,1)
-  2. Calls `hardfilter()` to generate valid schedules based on hard constraints
-  3. Scores each valid schedule using soft preferences
+  2. Calls `hardFilter()` to generate valid schedules based on hard constraints
+  3. Scores each valid schedule using soft + location preferences
   4. Returns top 10 schedules sorted by score
 
-#### `hardfilter(inputTimespace, courses, CRNs)`
+#### `hardFilter(inputTimespace, courses, CRNs)`
 - Located in: `hard_filtering_code.py`
 - Generates all valid schedules that satisfy hard constraints
 - Uses DFS (Depth-First Search) to explore combinations
 - Respects CRN requirements and time conflicts
 
-#### `score_schedules(schedules, soft_prefs, soft_breaks)`
+#### `score_schedules(schedules, soft_prefs, soft_breaks, location_preferences=None)`
 - Located in: `scheduler.py`
 - Scores each schedule based on:
   - Professor quality (RMP scores, excellence ratings)
   - Class difficulty (GPA data)
   - Soft break preferences
+  - Location (walking distance between back-to-back classes, via `location_code.py`)
 - Returns schedules with calculated scores
+
+#### `location_score(index_list, walking_distance, lateness_tolerance)`
+- Located in: `location_code.py`
+- Computes the walking-comfort score (0-100) across all back-to-back class transitions
+- Uses real OpenStreetMap building coordinates from `buildings_coords.json` and a Haversine distance
+- Returns -1 (neutral) when there is nothing to score or the buildings lack coordinate data
 
 ---
 
@@ -284,16 +303,16 @@ Courses are specified as strings in the format: `"DEPARTMENT NUMBER"`
 
 ### Prerequisites
 ```bash
-pip install flask pandas numpy
+pip install -r data_processing/filter/requirements.txt
 ```
 
 ### Start the Server
 ```bash
-cd "Project 2/data_processing/filter"
+cd data_processing/filter
 python app.py
 ```
 
-The server will run on `http://localhost:5000` in debug mode.
+The server will run on `http://localhost:5001` in debug mode.
 
 ---
 

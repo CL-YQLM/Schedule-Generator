@@ -1,0 +1,386 @@
+{
+  "1010 W Nevada": [
+    40.106097,
+    -88.221155
+  ],
+  "1203 1/2 W Nevada": [
+    40.105702,
+    -88.224352
+  ],
+  "1205 W Oregon": [
+    40.107009,
+    -88.220366
+  ],
+  "1207 W Oregon": [
+    40.10668,
+    -88.22483
+  ],
+  "805 W Pennsylvania": [
+    40.099818,
+    -88.220308
+  ],
+  "901 W Oregon": [
+    40.106926,
+    -88.219412
+  ],
+  "907 1/2 W Nevada": [
+    40.105902,
+    -88.219499
+  ],
+  "Activities & Recreation Center": [
+    40.100637,
+    -88.23605
+  ],
+  "Agricultural Bioprocess Lab": [
+    40.101103,
+    -88.225559
+  ],
+  "Agricultural Engr Sciences Bld": [
+    40.101638,
+    -88.226344
+  ],
+  "Allen Residence Hall": [
+    40.104092,
+    -88.22069
+  ],
+  "Animal Sciences Laboratory": [
+    40.1038,
+    -88.225134
+  ],
+  "Architecture Building": [
+    40.10336,
+    -88.229211
+  ],
+  "Armory": [
+    40.10476,
+    -88.231951
+  ],
+  "Art and Design Building": [
+    40.102045,
+    -88.231348
+  ],
+  "Astronomy Building": [
+    40.110934,
+    -88.220878
+  ],
+  "Beckman Institute": [
+    40.1157,
+    -88.227507
+  ],
+  "Bevier Hall": [
+    40.104794,
+    -88.224264
+  ],
+  "Burrill Hall": [
+    40.109362,
+    -88.22465
+  ],
+  "Business Instructional Fac": [
+    40.103587,
+    -88.230606
+  ],
+  "Campbell Hall": [
+    40.115139,
+    -88.223539
+  ],
+  "Campus Instructional Facility": [
+    40.112523,
+    -88.228277
+  ],
+  "Campus Recreation Center East": [
+    40.104758,
+    -88.221968
+  ],
+  "Ceramics Building": [
+    40.111699,
+    -88.224243
+  ],
+  "Ceramics Kiln House": [
+    40.11164,
+    -88.224887
+  ],
+  "Chemical and Life Sci Lab": [
+    40.10788,
+    -88.22402
+  ],
+  "Chemistry Annex": [
+    40.107811,
+    -88.226076
+  ],
+  "Child Development Laboratory": [
+    40.105683,
+    -88.220984
+  ],
+  "Children's Research Center": [
+    40.086602,
+    -88.241064
+  ],
+  "Christopher Hall": [
+    40.106273,
+    -88.219556
+  ],
+  "Civil & Envir Eng Bldg": [
+    40.114013,
+    -88.226544
+  ],
+  "Dance Studio": [
+    40.105674,
+    -88.219959
+  ],
+  "Davenport Hall": [
+    40.107222,
+    -88.226202
+  ],
+  "David Kinley Hall": [
+    40.103583,
+    -88.228405
+  ],
+  "Digital Computer Laboratory": [
+    40.113132,
+    -88.226455
+  ],
+  "Early Child Development Lab": [
+    40.105683,
+    -88.220984
+  ],
+  "Education Building": [
+    40.102077,
+    -88.229639
+  ],
+  "Electrical & Computer Eng Bldg": [
+    40.11493,
+    -88.228059
+  ],
+  "Engineering Hall": [
+    40.110886,
+    -88.226981
+  ],
+  "Engineering Sciences Building": [
+    40.112448,
+    -88.223086
+  ],
+  "English Building": [
+    40.107534,
+    -88.228155
+  ],
+  "Everitt Laboratory": [
+    40.110972,
+    -88.228263
+  ],
+  "FAR Meeting Space": [
+    40.098788,
+    -88.220649
+  ],
+  "Flagg Hall": [
+    40.102772,
+    -88.233953
+  ],
+  "Foellinger Auditorium": [
+    40.105955,
+    -88.227185
+  ],
+  "Freer Hall": [
+    40.10487,
+    -88.222904
+  ],
+  "Grad Sch of Lib & Info Science": [
+    40.107655,
+    -88.231506
+  ],
+  "Grainger Engineering Library": [
+    40.112474,
+    -88.22686
+  ],
+  "Gregory Hall": [
+    40.105732,
+    -88.228102
+  ],
+  "Harding Band Building": [
+    40.104804,
+    -88.230751
+  ],
+  "Henry Administration Bldg": [
+    40.108345,
+    -88.228256
+  ],
+  "Huff Hall": [
+    40.103453,
+    -88.23276
+  ],
+  "Ice Arena": [
+    40.105817,
+    -88.232537
+  ],
+  "Illini Union": [
+    40.110406,
+    -88.227449
+  ],
+  "Illinois Street Residence Lng": [
+    40.109752,
+    -88.221282
+  ],
+  "Inst Labor &  Industrial Rel": [
+    40.10565,
+    -88.23153
+  ],
+  "Institute for Genomic Biology": [
+    40.104782,
+    -88.224763
+  ],
+  "Japan House": [
+    40.092796,
+    -88.217943
+  ],
+  "Krannert Center for Perf Arts": [
+    40.108022,
+    -88.222536
+  ],
+  "Law Building": [
+    40.100981,
+    -88.231491
+  ],
+  "Library": [
+    40.104681,
+    -88.22899
+  ],
+  "Lincoln Avenue Residence Hall": [
+    40.104096,
+    -88.220058
+  ],
+  "Lincoln Hall": [
+    40.106568,
+    -88.228175
+  ],
+  "Literatures, Cultures, & Ling": [
+    40.106214,
+    -88.226173
+  ],
+  "Loomis Laboratory": [
+    40.111094,
+    -88.223235
+  ],
+  "Materials Science & Eng Bld": [
+    40.110928,
+    -88.226103
+  ],
+  "Meat Science Laboratory": [
+    40.09944,
+    -88.223103
+  ],
+  "Mechanical Engineering Lab": [
+    40.111896,
+    -88.226144
+  ],
+  "Medical Sciences Building": [
+    40.108595,
+    -88.225171
+  ],
+  "Micro & Nanotechnology Lab": [
+    40.113938,
+    -88.227912
+  ],
+  "Mumford Hall": [
+    40.103628,
+    -88.226039
+  ],
+  "Music Building": [
+    40.106328,
+    -88.223272
+  ],
+  "National Soybean Res Ctr": [
+    40.101064,
+    -88.222275
+  ],
+  "Natural History Building": [
+    40.109484,
+    -88.226033
+  ],
+  "Newmark Civil Engineering Bldg": [
+    40.114013,
+    -88.226544
+  ],
+  "Noble Hall": [
+    40.10232,
+    -88.234194
+  ],
+  "Noyes Laboratory": [
+    40.108395,
+    -88.22609
+  ],
+  "Pennsylvania Lounge Bld - PAR": [
+    40.099818,
+    -88.220308
+  ],
+  "Plant Sciences Laboratory": [
+    40.102236,
+    -88.222727
+  ],
+  "Psychology Building": [
+    40.107486,
+    -88.229944
+  ],
+  "Roger Adams Laboratory": [
+    40.107483,
+    -88.224605
+  ],
+  "Sidney Lu Mech Engr Bldg": [
+    40.111084,
+    -88.225086
+  ],
+  "Siebel Center for Comp Sci": [
+    40.114025,
+    -88.224432
+  ],
+  "Siebel Center for Design": [
+    40.102725,
+    -88.232581
+  ],
+  "Smith Memorial Hall": [
+    40.105679,
+    -88.226111
+  ],
+  "Speech & Hearing Science Bldg": [
+    40.107655,
+    -88.230736
+  ],
+  "Spurlock Museum": [
+    40.107599,
+    -88.220786
+  ],
+  "Stock Pavilion": [
+    40.101022,
+    -88.227192
+  ],
+  "Student Dining & Res Program": [
+    40.103838,
+    -88.235325
+  ],
+  "Talbot Laboratory": [
+    40.111811,
+    -88.228276
+  ],
+  "Temple Hoyne Buell Hall": [
+    40.102086,
+    -88.227933
+  ],
+  "Transportation Building": [
+    40.111716,
+    -88.225202
+  ],
+  "Turner Hall": [
+    40.102941,
+    -88.224251
+  ],
+  "Vet Med Basic Sciences Bldg": [
+    40.092804,
+    -88.220945
+  ],
+  "Weston Hall": [
+    40.102994,
+    -88.235595
+  ],
+  "Wohlers Hall": [
+    40.103573,
+    -88.22974
+  ]
+}

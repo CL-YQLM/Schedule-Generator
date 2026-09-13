@@ -29,11 +29,18 @@ export interface Schedule {
   schedule: CourseSection[];
 }
 
+export interface LocationPreferences {
+  importance: number;
+  walking_distance: number;
+  lateness_tolerance: number;
+}
+
 export interface GenerateScheduleRequest {
   course_list: string[];
   CRN_list: number[];
   hard_breaks: number[][];
   soft_preferences: (number | string)[];
+  location_preferences: LocationPreferences;
 }
 
 export interface SearchCoursesResponse {

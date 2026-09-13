@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 import os
 script_dir = os.path.dirname(os.path.abspath(__file__))
-print(script_dir)
 csv_path = os.path.join(script_dir, "../../datasets/11-7-2025-sp.csv")
 df = pd.read_csv(csv_path)
 #df = pd.read_csv("../datasets/11-7-2025-sp.csv")
@@ -147,7 +146,6 @@ def hardFilter_dfs(courses, timespace, sectionIndexes):# unfinished need to make
         totalCount += 1
         if (totalCount > totalCountLimit):
             raise ValueError("The number of possible schedules is too big!")
-        hardFilter_printSchedule(sectionIndexes)
         return [sectionIndexes]
 
     endlist = []

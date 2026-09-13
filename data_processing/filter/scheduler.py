@@ -1,11 +1,12 @@
 import hard_filtering_code as hf
 import soft_filtering_code as sf
+import location_code as lc
 import pandas as pd
 import numpy as np
 from numpy import nan
 import os
+import html
 script_dir = os.path.dirname(os.path.abspath(__file__))
-print(script_dir)
 csv_path = os.path.join(script_dir, "../../datasets/11-7-2025-sp.csv")
 df = pd.read_csv(csv_path)
 
@@ -25,13 +26,13 @@ def find_courses(department):
     for _, row in unique_courses.iterrows():
         course_list.append({
             "number": str(row['Number']),
-            "name": row['Name']
+            "name": html.unescape(str(row['Name']))
         })
 
     return course_list
 
 
-def generate_schedule(course_list, CRN_list, time_breaks, soft_preferences):
+def generate_schedule(course_list, CRN_list, time_breaks, soft_preferences, location_preferences=None):
     """
     generate and rank schedules
     return top 10 schedules
@@ -55,8 +56,8 @@ def generate_schedule(course_list, CRN_list, time_breaks, soft_preferences):
     valid_schedules = hf.hardFilter(hard_breaks, course_list, CRN_list)
     
 
-    # ccore each schedule based on soft preferences
-    scored_schedules = score_schedules(valid_schedules, soft_preferences, soft_breaks)
+    # score each schedule based on soft + location preferences
+    scored_schedules = score_schedules(valid_schedules, soft_preferences, soft_breaks, location_preferences)
 
     #return top 10
     top_schedules = sorted(scored_schedules, key=lambda x: x['score'], reverse=True)[:10]
@@ -65,7 +66,7 @@ def generate_schedule(course_list, CRN_list, time_breaks, soft_preferences):
 
 
 
-def score_schedules(schedules, soft_prefs, soft_breaks):
+def score_schedules(schedules, soft_prefs, soft_breaks, location_preferences=None):
     """
     1. Soft preferences (importtance of 1-5 of how much the user cares about the below two)
     rate my professor score(1-5 of how much they care
@@ -101,24 +102,16 @@ def score_schedules(schedules, soft_prefs, soft_breaks):
         prof_score = sf.prof_score(schedule, soft_prefs[1], soft_prefs[2])
         class_score = sf.class_score(schedule, soft_prefs[4], soft_prefs[5], soft_prefs[6], soft_prefs[7])
         softbreak_score = sf.softbreak_score(schedule, soft_breaks)
-        # location_score = calculate_location_score(schedule, soft_prefs)
 
-        # Normalize scores to 0-100 scale
-        # prof_score: 0-100 (from prof_eo and prof_RMP, both scaled to 0-100)
-        # class_score: returns weighted avg of GPA score (0-4) and percentage (0-100)
-        # the  GPA portion needs to be scaled to 0-100
-        # softbreak_score: 0-1 (convert to 0-100)
+        loc = location_preferences or {}
+        loc_importance = loc.get("importance", 3)
+        location_val = lc.location_score(
+            schedule,
+            loc.get("walking_distance", 15),
+            loc.get("lateness_tolerance", 10),
+        )
 
-        normalized_prof = prof_score if prof_score != -1 else 50  # Use 50 as neutral score if no data
-
-
-        normalized_class = class_score if class_score != -1 else 50
-
-        normalized_softbreak = softbreak_score * 100  # Convert 0-1 to 0-100
-
-        # Calculate final weighted score with normalized values
-        total_weight = soft_prefs[0] + soft_prefs[3] + soft_prefs[8]
-
+        # All component scores are on a 0-100 scale; softbreak_score is 0-1 so scale it.
         score = 0
         total = 0
         if prof_score != -1:
@@ -128,14 +121,16 @@ def score_schedules(schedules, soft_prefs, soft_breaks):
             score += class_score * soft_prefs[3]
             total += soft_prefs[3]
         if softbreak_score != -1:
-            score += softbreak_score * soft_prefs[8]
+            score += (softbreak_score * 100) * soft_prefs[8]
             total += soft_prefs[8]
-        
+        if location_val != -1:
+            score += location_val * loc_importance
+            total += loc_importance
+
         if total == 0:
             final_score = 0
         else:
             final_score = score / total
-        #df.loc[section, '']
 
         returnSchedule = []
         for section in schedule:
@@ -145,8 +140,8 @@ def score_schedules(schedules, soft_prefs, soft_breaks):
 
             returnSchedule.append({
                 "course": str(df.loc[section, 'Code']) + " " + str(df.loc[section, 'Number']),
-                "name": str(df.loc[section, 'Name']),
-                "description": str(df.loc[section, 'Description']),
+                "name": html.unescape(str(df.loc[section, 'Name'])),
+                "description": html.unescape(str(df.loc[section, 'Description'])),
                 "credit": str(df.loc[section, 'Credit Hours']),
                 "degree": str(df.loc[section, 'Degree Attributes']),
                 "CRN": int(df.loc[section, 'CRN']),
@@ -165,11 +160,6 @@ def score_schedules(schedules, soft_prefs, soft_breaks):
             "schedule": returnSchedule
         }
         scored.append(schedule_entry)
-
-        # Debug: Print first schedule entry details
-        if len(scored) == 1:
-            print(f"DEBUG: First schedule score: {final_score}")
-            print(f"DEBUG: First course in schedule: {returnSchedule[0] if returnSchedule else 'No courses'}")
 
     return scored
 

@@ -52,15 +52,9 @@ def generate():
     CRN_list = data.get("CRN_list")
     hard_breaks = data.get("hard_breaks")
     soft_preferences = data.get("soft_preferences")
+    location_preferences = data.get("location_preferences")
 
-    print(f"DEBUG: Received course_list: {course_list}")
-    print(f"DEBUG: Received CRN_list: {CRN_list}")
-    print(f"DEBUG: Received hard_breaks type: {type(hard_breaks)}, length: {len(hard_breaks) if hard_breaks else 'None'}")
-    print(f"DEBUG: Received soft_preferences: {soft_preferences}")
-
-    top_ten_schedules = generate_schedule(course_list, CRN_list, hard_breaks, soft_preferences)
-
-    print(f"DEBUG: Generated {len(top_ten_schedules)} schedules")
+    top_ten_schedules = generate_schedule(course_list, CRN_list, hard_breaks, soft_preferences, location_preferences)
 
     return jsonify({
         "success": True,

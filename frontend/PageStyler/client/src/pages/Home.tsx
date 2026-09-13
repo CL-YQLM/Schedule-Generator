@@ -45,6 +45,11 @@ export default function Home() {
         CRN_list: state.selectedCRNs,
         hard_breaks: state.timeBreaks,
         soft_preferences: softPreferences,
+        location_preferences: {
+          importance: state.preferences.locationImportance,
+          walking_distance: state.preferences.walkingDistance,
+          lateness_tolerance: state.preferences.latenessTolerance,
+        },
       });
 
       setGeneratedSchedules(schedules);
@@ -111,21 +116,9 @@ export default function Home() {
                 id: "logistics",
                 title: "Logistics & Timing",
                 sliders: [
+                  { id: "location_importance", label: "Location Importance", min: 1, max: 5, initial: 3 },
                   { id: "passing_period_main", label: "Walking Distance (min)", min: 5, max: 20, initial: 10 },
                   { id: "late_tolerance", label: "Lateness Tolerance (min)", min: 0, max: 30, initial: 5 },
-                ],
-              },
-              {
-                id: "location",
-                title: "Campus Location",
-                sliders: [
-                  {
-                    id: "preferred_area",
-                    label: "Preferred Zone",
-                    type: "dropdown",
-                    options: ["North Campus", "South Campus", "Science Quad", "Arts Block", "Engineering Center"],
-                  },
-                  { id: "num_blocks", label: "Maximum Block Distance", min: 1, max: 10, initial: 3 },
                 ],
               },
             ]}

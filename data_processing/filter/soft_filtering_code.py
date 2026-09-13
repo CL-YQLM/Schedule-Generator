@@ -5,7 +5,6 @@ from numpy import nan
 import os
 import ast
 script_dir = os.path.dirname(os.path.abspath(__file__))
-print(script_dir)
 csv_path = os.path.join(script_dir, "../../datasets/11-7-2025-sp.csv")
 df = pd.read_csv(csv_path)
 
