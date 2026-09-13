@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Clock, MapPin, User, Calendar } from "lucide-react";
+import { Clock, MapPin, User, Calendar, Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Course {
   title: string;
@@ -47,6 +48,20 @@ const COLORS = [
 ];
 
 export default function ScheduleVisualizer({ id, matchPercentage, creditHours, courses, timeBreaks }: ScheduleOptionProps) {
+  const { toast } = useToast();
+
+  const handleCopyCRNs = () => {
+    const crns = Array.from(
+      new Set(courses.map((c) => c.courseData?.CRN).filter((crn): crn is number => Boolean(crn)))
+    );
+    if (crns.length === 0) {
+      toast({ title: "No CRNs to copy", variant: "destructive" });
+      return;
+    }
+    navigator.clipboard.writeText(crns.join(", "));
+    toast({ title: `Copied ${crns.length} CRNs`, description: crns.join(", ") });
+  };
+
   // Helper to convert time string "HH:MM" to minutes from start of day (7:00 AM)
   const timeToMinutes = (timeStr: string) => {
     const [hours, minutes] = timeStr.split(":").map(Number);
@@ -129,7 +144,9 @@ export default function ScheduleVisualizer({ id, matchPercentage, creditHours, c
             <Badge className="bg-primary hover:bg-primary/90 text-white">Score: {matchPercentage}</Badge>
             <Badge variant="outline" className="border-primary/20 text-primary">{creditHours} Credits</Badge>
           </div>
-          <Button variant="outline" size="sm" className="h-8">Save</Button>
+          <Button variant="outline" size="sm" className="h-8" onClick={handleCopyCRNs}>
+            <Copy className="mr-1.5 h-3.5 w-3.5" /> Copy CRNs
+          </Button>
         </div>
         <CardTitle className="font-heading text-xl mt-2">Schedule Option {id}</CardTitle>
         <CardDescription>Optimized for your preferences</CardDescription>

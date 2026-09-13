@@ -8,6 +8,10 @@ It runs on a snapshot of Spring 2025 course data, which also includes each secti
 RateMyProfessor score, and ICES teaching ratings, so the ranking is based on real numbers instead of
 guesswork.
 
+| Set your preferences | Get ranked schedules |
+| --- | --- |
+| ![The planner](docs/planner.png) | ![Ranked results](docs/results.png) |
+
 ## How you use it
 
 1. Search for classes by department (`CS`, `MATH`, `ECE`, whatever).

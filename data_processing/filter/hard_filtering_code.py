@@ -14,7 +14,11 @@ global totalCount
 totalCount = 0
 totalCountLimit = 30000
 possibleList = [0, 2, 3, 5]
-#need to change directory to the location of the csv file
+
+
+class TooManySchedulesError(Exception):
+    """Raised when the number of valid schedules exceeds totalCountLimit."""
+    pass
 
 def timeToInt(timeString):
     hours = int(timeString.split(':')[0])
@@ -145,7 +149,7 @@ def hardFilter_dfs(courses, timespace, sectionIndexes):# unfinished need to make
         global totalCount
         totalCount += 1
         if (totalCount > totalCountLimit):
-            raise ValueError("The number of possible schedules is too big!")
+            raise TooManySchedulesError("The number of possible schedules is too big!")
         return [sectionIndexes]
 
     endlist = []
@@ -183,14 +187,9 @@ def hardFilter(inputTimespace, courses, CRNs):
             if hardFilter_checkConflict(newTimespace):
                 inputTimespace += hardFilter_toTimespace(index)
 
-    ansList = []
-    try:
-        global totalCount
-        totalCount = 0
-        ansList = hardFilter_dfs(courses, inputTimespace, [])
-    except ValueError:
-        print("error")
-    return ansList
+    global totalCount
+    totalCount = 0
+    return hardFilter_dfs(courses, inputTimespace, [])
 
 #need to consider NaN situations
     #Actually we don't have to because for every course ther will definitely be a time range

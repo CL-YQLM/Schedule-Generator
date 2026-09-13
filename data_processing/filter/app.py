@@ -2,6 +2,7 @@
 from flask import Flask, request, jsonify
 from scheduler import generate_schedule
 from scheduler import find_courses
+from hard_filtering_code import TooManySchedulesError
 
 app = Flask(__name__)
 
@@ -54,7 +55,13 @@ def generate():
     soft_preferences = data.get("soft_preferences")
     location_preferences = data.get("location_preferences")
 
-    top_ten_schedules = generate_schedule(course_list, CRN_list, hard_breaks, soft_preferences, location_preferences)
+    try:
+        top_ten_schedules = generate_schedule(course_list, CRN_list, hard_breaks, soft_preferences, location_preferences)
+    except TooManySchedulesError:
+        return jsonify({
+            "success": False,
+            "message": "Too many possible schedules to search. Please select fewer courses or add more time constraints."
+        }), 422 #422 = unprocessable entity
 
     return jsonify({
         "success": True,

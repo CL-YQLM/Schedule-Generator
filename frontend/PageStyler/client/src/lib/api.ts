@@ -1,6 +1,7 @@
 // API client for backend communication
 
-const API_BASE_URL = 'http://127.0.0.1:5001';
+// Override with VITE_API_URL (.env) to point at a deployed backend.
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
 
 export interface Course {
   number: string;
@@ -51,6 +52,7 @@ export interface SearchCoursesResponse {
 export interface GenerateScheduleResponse {
   success: boolean;
   schedules: Schedule[];
+  message?: string;
 }
 
 /**
@@ -86,14 +88,12 @@ export async function generateSchedules(
     body: JSON.stringify(preferences),
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to generate schedules: ${response.statusText}`);
-  }
+  const data: GenerateScheduleResponse = await response
+    .json()
+    .catch(() => ({ success: false, schedules: [] }));
 
-  const data: GenerateScheduleResponse = await response.json();
-
-  if (!data.success) {
-    throw new Error('Schedule generation failed');
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || `Failed to generate schedules: ${response.statusText}`);
   }
 
   return data.schedules;

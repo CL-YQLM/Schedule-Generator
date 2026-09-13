@@ -98,9 +98,11 @@ curl http://localhost:5001/search/CS
 - Example: `["CS 124", "MATH 241", "ECE 120"]`
 
 #### `CRN_list` (array of integers)
-- List of Course Registration Numbers (CRNs) for required sections
-- Use this when you want to force specific sections into the schedule
+- List of Course Registration Numbers (CRNs) whose meeting times should be reserved
 - Example: `[71578, 34123]`
+- **Known limitation:** the current implementation only blocks each CRN's time slot so the rest
+  of the schedule works around it; it does not yet guarantee that the exact section appears in the
+  results. Truly forcing a section requires reworking the linked-section solver (see README).
 
 #### `hard_breaks` (2D array: 5x90)
 - Represents time constraints for 5 days (M, T, W, R, F) and 90 time slots (7:00 AM - 10:00 PM in 10-minute intervals)
